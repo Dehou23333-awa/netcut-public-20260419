@@ -6,19 +6,43 @@
 .cache
 dist
 
+# Vite cache
+vite.svg
+
 # Node dependencies
 node_modules
 
 # Logs
 logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # Misc
 .DS_Store
 .fleet
 .idea
+.vscode
+*.swp
+*.swo
+
+# Python cache (for local scripts/tools)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
 # Local env files
 .env
 .env.*
 !.env.example
+
+# Local database/runtime artifacts
+prisma/dev.db
+prisma/dev.db-journal
+
+# Test/coverage
+coverage/
+.nyc_output/
