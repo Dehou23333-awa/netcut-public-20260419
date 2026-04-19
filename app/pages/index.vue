@@ -19,7 +19,8 @@
     <dialog ref="confirmDialog" class="confirm-dialog">
       <form method="dialog" class="confirm-body" @submit.prevent="createPaste">
         <h2>{{ t('index.confirmTitle') }}</h2>
-        <input v-model="title" :placeholder="t('index.titlePlaceholder')" maxlength="120" required />
+        <input v-model="customSlug" :placeholder="t('index.slugPlaceholder')" maxlength="48" />
+        <p class="muted">{{ t('index.slugHint') }}</p>
         <GlassSelect v-model="visibility" :options="visibilityOptions" :disabled="!isLoggedIn" />
         <p v-if="!isLoggedIn" class="muted">{{ t('index.anonVisibilityHint') }}</p>
         <GlassSelect v-model="expireInHours" :options="expireOptions" />
@@ -38,7 +39,7 @@
 const { refresh, auth } = useAuthState()
 const { t } = useI18nText()
 
-const title = ref('')
+const customSlug = ref('')
 const contentRawMarkdown = ref('')
 const visibility = ref<'public_edit' | 'public_auth_edit' | 'public_read' | 'private'>('public_read')
 const expireInHours = ref<number | ''>('')
@@ -85,10 +86,6 @@ watch(
   }
 )
 
-async function copyRaw() {
-  await navigator.clipboard.writeText(contentRawMarkdown.value)
-}
-
 function openConfirm() {
   if (!contentRawMarkdown.value.trim()) {
     error.value = t('index.emptyContent')
@@ -104,8 +101,8 @@ function closeConfirm() {
 }
 
 async function createPaste() {
-  if (!title.value.trim() || !contentRawMarkdown.value.trim()) {
-    error.value = t('index.missingTitleOrContent')
+  if (!contentRawMarkdown.value.trim()) {
+    error.value = t('index.emptyContent')
     return
   }
 
@@ -120,7 +117,7 @@ async function createPaste() {
     const data = await $fetch<{ paste: { id: string } }>('/api/pastes', {
       method: 'POST',
       body: {
-        title: title.value,
+        customSlug: customSlug.value,
         contentRawMarkdown: contentRawMarkdown.value,
         visibility: visibility.value,
         expireInHours: expireInHours.value === '' ? null : Number(expireInHours.value)

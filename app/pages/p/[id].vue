@@ -13,15 +13,13 @@
     <div class="hero hero-wysiwyg">
       <div class="content-area">
         <MinimalMarkdownInput v-if="canEdit" v-model="contentRawMarkdown" :placeholder="t('paste.contentPlaceholder')" />
-        <PastePreview v-else :html="previewHtml" class="preview-wysiwyg" />
+        <VditorReadonlyPreview v-else :markdown="contentRawMarkdown" class="preview-wysiwyg" />
       </div>
 
       <div v-if="canEdit" class="controls-collapse">
         <GlassSelect v-model="visibility" :options="visibilityOptions" :disabled="!canEdit || !isLoggedIn" />
 
         <GlassSelect v-model="expireInHours" :options="expireOptions" :disabled="!canEdit" />
-
-        <button type="button" class="ghost" @click="copyRaw">{{ t('paste.copy') }}</button>
       </div>
 
       <p v-if="error" class="error">{{ error }}</p>
@@ -30,13 +28,10 @@
 </template>
 
 <script setup lang="ts">
-import { renderMarkdown } from '~/composables/useMarkdownRenderer'
-
 const route = useRoute()
 const { auth, refresh } = useAuthState()
 const { t } = useI18nText()
 
-const title = ref('')
 const contentRawMarkdown = ref('')
 const visibility = ref<'public_edit' | 'public_auth_edit' | 'public_read' | 'private'>('public_read')
 const expireInHours = ref<number | '' | 0>('')
@@ -71,10 +66,8 @@ const expireOptions = computed<Array<{ label: string; value: number | '' | 0 }>>
   { label: t('expiry.clear'), value: 0 }
 ])
 
-const previewHtml = computed(() => renderMarkdown(contentRawMarkdown.value))
-
 useHead(() => ({
-  title: title.value ? `${title.value} - NetCut` : 'NetCut'
+  title: route.params.id ? `${String(route.params.id)} - NetCut` : 'NetCut'
 }))
 
 async function load() {
@@ -82,7 +75,6 @@ async function load() {
   try {
     const data = await $fetch<{
       paste: {
-        title: string
         contentRawMarkdown: string
         visibility: 'public_edit' | 'public_auth_edit' | 'public_read' | 'private'
       }
@@ -91,17 +83,12 @@ async function load() {
       }
     }>(`/api/pastes/${route.params.id}`)
 
-    title.value = data.paste.title
     contentRawMarkdown.value = data.paste.contentRawMarkdown
     visibility.value = data.paste.visibility
     canEdit.value = data.permissions.canEdit
   } catch (e: any) {
     error.value = e?.data?.statusMessage || e?.statusMessage || t('paste.loadFail')
   }
-}
-
-async function copyRaw() {
-  await navigator.clipboard.writeText(contentRawMarkdown.value)
 }
 
 async function save() {
@@ -115,7 +102,6 @@ async function save() {
     await $fetch(`/api/pastes/${route.params.id}`, {
       method: 'PATCH',
       body: {
-        title: title.value,
         contentRawMarkdown: contentRawMarkdown.value,
         visibility: visibility.value,
         expireInHours:

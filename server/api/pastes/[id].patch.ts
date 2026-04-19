@@ -8,7 +8,6 @@ import { prisma } from '../../utils/db'
 import { canCreateWithVisibility, resolveVisibility } from '../../utils/visibility'
 
 const schema = z.object({
-  title: z.string().trim().min(1).max(120).optional(),
   contentRawMarkdown: z.string().min(1).max(120000).optional(),
   visibility: z.enum(['public_edit', 'public_auth_edit', 'public_read', 'private']).optional(),
   expireInHours: z.number().int().min(1).max(24 * 365).nullable().optional()
@@ -52,7 +51,6 @@ export default defineEventHandler(async (event) => {
   const updated = await prisma.paste.update({
     where: { id },
     data: {
-      title: payload.data.title ?? paste.title,
       contentRawMarkdown: payload.data.contentRawMarkdown ?? paste.contentRawMarkdown,
       visibility: nextVisibility,
       expiresAt
@@ -63,7 +61,6 @@ export default defineEventHandler(async (event) => {
     ok: true,
     paste: {
       id: updated.id,
-      title: updated.title,
       contentRawMarkdown: updated.contentRawMarkdown,
       visibility: updated.visibility,
       expiresAt: updated.expiresAt,

@@ -32,7 +32,6 @@ export default defineEventHandler(async (event) => {
     ok: true,
     paste: {
       id: paste.id,
-      title: paste.title,
       contentRawMarkdown: paste.contentRawMarkdown,
       visibility: paste.visibility,
       expiresAt: paste.expiresAt,

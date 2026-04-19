@@ -12,7 +12,7 @@
       <ul v-else class="list">
         <li v-for="item in items" :key="item.id" class="list-item">
           <div>
-            <NuxtLink :to="`/p/${item.id}`">{{ item.title }}</NuxtLink>
+            <NuxtLink :to="`/p/${item.id}`">/p/{{ item.id }}</NuxtLink>
             <p class="muted">{{ item.visibility }} · {{ item.expired ? t('me.expired') : t('me.valid') }}</p>
           </div>
           <button type="button" class="ghost" @click="remove(item.id)">{{ t('me.delete') }}</button>
@@ -34,7 +34,6 @@ definePageMeta({
 
 type Item = {
   id: string
-  title: string
   visibility: string
   expired: boolean
 }

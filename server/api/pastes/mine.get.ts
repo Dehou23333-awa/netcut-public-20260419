@@ -14,7 +14,6 @@ export default defineEventHandler(async (event) => {
     ok: true,
     pastes: pastes.map((paste) => ({
       id: paste.id,
-      title: paste.title,
       visibility: paste.visibility,
       expiresAt: paste.expiresAt,
       expired: isExpired(paste.expiresAt),

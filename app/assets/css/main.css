@@ -36,14 +36,15 @@ a {
 }
 
 .shell {
-  max-width: 980px;
-  margin: 0;
-  padding: 20px;
+  width: min(1320px, 100%);
+  margin: 0 auto;
+  padding: 20px clamp(16px, 3vw, 28px);
 }
 
 .shell-minimal {
-  max-width: 900px;
-  padding: 28px;
+  width: min(1320px, 100%);
+  max-width: none;
+  padding: 28px clamp(16px, 3vw, 28px);
 }
 
 .topbar {
@@ -90,7 +91,9 @@ a {
 }
 
 .footnote-inner {
-  width: 100%;
+  width: min(1320px, 100%);
+  margin: 0 auto;
+  padding: 0 clamp(16px, 3vw, 28px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -246,6 +249,8 @@ select {
 
 .content-area {
   margin: 16px 0;
+  width: 100%;
+  min-height: calc(100vh - 220px);
 }
 
 .preview-wysiwyg {
@@ -614,6 +619,11 @@ select:disabled {
 
   .footnote-inner {
     font-size: 0.78rem;
+    padding: 0 14px;
+  }
+
+  .content-area {
+    min-height: calc(100vh - 260px);
   }
 
   .glass-select {
