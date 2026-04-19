@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Visibility {
+  public_edit
+  public_auth_edit
+  public_read
+  private
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String?   @unique
+  username     String    @unique
+  passwordHash String?
+  githubId     String?   @unique
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  pastes       Paste[]
+  sessions     Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Paste {
+  id                 String     @id @default(cuid())
+  title              String
+  contentRawMarkdown String
+  visibility         Visibility @default(public_read)
+  expiresAt          DateTime?
+  ownerId            String?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  owner              User?      @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId])
+  @@index([visibility])
+  @@index([expiresAt])
+}
