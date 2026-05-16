@@ -67,5 +67,9 @@ export async function clearAuthSession(event: H3Event) {
       .catch(() => undefined)
   }
 
-  deleteCookie(event, COOKIE_NAME, { path: '/' })
+  deleteCookie(event, COOKIE_NAME, {
+    path: '/',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  })
 }

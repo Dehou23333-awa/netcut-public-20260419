@@ -38,6 +38,7 @@ const expireInHours = ref<number | '' | 0>('')
 const canEdit = ref(false)
 const saving = ref(false)
 const error = ref('')
+const isNewPaste = ref(false)
 const isLoggedIn = computed(() => auth.value.loggedIn)
 
 const visibilityOptions = computed(() => {
@@ -72,6 +73,7 @@ useHead(() => ({
 
 async function load() {
   error.value = ''
+  isNewPaste.value = false
   try {
     const data = await $fetch<{
       paste: {
@@ -87,7 +89,17 @@ async function load() {
     visibility.value = data.paste.visibility
     canEdit.value = data.permissions.canEdit
   } catch (e: any) {
-    error.value = e?.data?.statusMessage || e?.statusMessage || t('paste.loadFail')
+    // If paste doesn't exist (404), allow user to create new one with this custom slug
+    if (e?.status === 404) {
+      isNewPaste.value = true
+      canEdit.value = true
+      contentRawMarkdown.value = ''
+      visibility.value = 'public_read'
+      expireInHours.value = ''
+      error.value = ''
+    } else {
+      error.value = e?.data?.statusMessage || e?.statusMessage || t('paste.loadFail')
+    }
   }
 }
 
@@ -99,20 +111,41 @@ async function save() {
       visibility.value = 'public_read'
     }
 
-    await $fetch(`/api/pastes/${route.params.id}`, {
-      method: 'PATCH',
-      body: {
-        contentRawMarkdown: contentRawMarkdown.value,
-        visibility: visibility.value,
-        expireInHours:
-          expireInHours.value === ''
-            ? undefined
-            : expireInHours.value === 0
-              ? null
-              : Number(expireInHours.value)
-      }
-    })
-    await load()
+    if (isNewPaste.value) {
+      // Create new paste with custom slug
+      await $fetch('/api/pastes', {
+        method: 'POST',
+        body: {
+          customSlug: String(route.params.id),
+          contentRawMarkdown: contentRawMarkdown.value,
+          visibility: visibility.value,
+          expireInHours:
+            expireInHours.value === ''
+              ? undefined
+              : expireInHours.value === 0
+                ? null
+                : Number(expireInHours.value)
+        }
+      })
+      isNewPaste.value = false
+      await load()
+    } else {
+      // Update existing paste
+      await $fetch(`/api/pastes/${route.params.id}`, {
+        method: 'PATCH',
+        body: {
+          contentRawMarkdown: contentRawMarkdown.value,
+          visibility: visibility.value,
+          expireInHours:
+            expireInHours.value === ''
+              ? undefined
+              : expireInHours.value === 0
+                ? null
+                : Number(expireInHours.value)
+        }
+      })
+      await load()
+    }
   } catch (e: any) {
     error.value = e?.data?.statusMessage || e?.statusMessage || t('paste.saveFail')
   } finally {
