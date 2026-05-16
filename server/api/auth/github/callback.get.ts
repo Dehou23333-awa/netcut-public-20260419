@@ -63,36 +63,41 @@ export default defineEventHandler(async (event) => {
   const githubId = String(profile.id)
   const baseUsername = profile.login.toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 18) || `gh${githubId}`
 
-  let user = await prisma.user.findFirst({
-    where: {
-      OR: [{ githubId }, ...(primaryEmail ? [{ email: primaryEmail }] : [])]
-    }
-  })
-
-  if (!user) {
-    let username = baseUsername
-    let suffix = 1
-
-    while (await prisma.user.findUnique({ where: { username } })) {
-      username = `${baseUsername}${suffix}`.slice(0, 24)
-      suffix += 1
-    }
-
-    user = await prisma.user.create({
-      data: {
-        username,
-        email: primaryEmail,
-        githubId
+  const { user, session } = await prisma.$transaction(async (tx) => {
+    let existingUser = await tx.user.findFirst({
+      where: {
+        OR: [{ githubId }, ...(primaryEmail ? [{ email: primaryEmail }] : [])]
       }
     })
-  } else if (!user.githubId) {
-    user = await prisma.user.update({
-      where: { id: user.id },
-      data: { githubId }
-    })
-  }
 
-  const session = await createSession(user.id)
+    if (!existingUser) {
+      let username = baseUsername
+      let suffix = 1
+
+      while (await tx.user.findUnique({ where: { username } })) {
+        username = `${baseUsername}${suffix}`.slice(0, 24)
+        suffix += 1
+      }
+
+      existingUser = await tx.user.create({
+        data: {
+          username,
+          email: primaryEmail,
+          githubId
+        }
+      })
+    } else if (!existingUser.githubId) {
+      existingUser = await tx.user.update({
+        where: { id: existingUser.id },
+        data: { githubId }
+      })
+    }
+
+    const newSession = await createSession(existingUser.id)
+
+    return { user: existingUser, session: newSession }
+  })
+
   setSessionCookie(event, session.token, session.expiresAt)
 
   return sendRedirect(event, '/')

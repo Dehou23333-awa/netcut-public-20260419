@@ -1,11 +1,12 @@
 import type { Visibility } from '@prisma/client'
 import { getRouterParam, readBody } from 'h3'
 import { z } from 'zod'
-import { getCurrentUser } from '../../utils/auth'
+import { getSessionUser } from '../../utils/session'
 import { assertNotExpired } from '../../utils/expiry'
 import { badRequest, notFound, unauthorized } from '../../utils/errors'
 import { prisma } from '../../utils/db'
 import { canCreateWithVisibility, resolveVisibility } from '../../utils/visibility'
+import { sanitizeContent } from '../../utils/sanitize'
 
 const schema = z.object({
   contentRawMarkdown: z.string().min(1).max(120000).optional(),
@@ -31,7 +32,7 @@ export default defineEventHandler(async (event) => {
 
   assertNotExpired(paste.expiresAt)
 
-  const user = await getCurrentUser(event)
+  const user = await getSessionUser(event)
   const rule = resolveVisibility(paste, user)
   if (!rule.canEdit) {
     unauthorized('No edit permission')
@@ -51,7 +52,7 @@ export default defineEventHandler(async (event) => {
   const updated = await prisma.paste.update({
     where: { id },
     data: {
-      contentRawMarkdown: payload.data.contentRawMarkdown ?? paste.contentRawMarkdown,
+      contentRawMarkdown: payload.data.contentRawMarkdown ? sanitizeContent(payload.data.contentRawMarkdown) : paste.contentRawMarkdown,
       visibility: nextVisibility,
       expiresAt
     }

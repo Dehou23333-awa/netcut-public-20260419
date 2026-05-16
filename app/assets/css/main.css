@@ -583,6 +583,19 @@ select:disabled {
   text-transform: uppercase;
 }
 
+.new-paste-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
 @keyframes fade-up {
   from {
     transform: translateY(6px);

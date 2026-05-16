@@ -1,5 +1,5 @@
-import { randomUUID } from 'node:crypto'
+import { randomBytes } from 'node:crypto'
 
 export function createPasteId() {
-  return randomUUID().replaceAll('-', '').slice(0, 16)
+  return randomBytes(8).toString('hex')
 }

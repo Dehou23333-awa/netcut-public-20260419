@@ -1,12 +1,13 @@
 import type { Visibility } from '@prisma/client'
 import { readBody } from 'h3'
 import { z } from 'zod'
-import { getCurrentUser } from '../../utils/auth'
+import { getSessionUser } from '../../utils/session'
 import { prisma } from '../../utils/db'
 import { badRequest, unauthorized } from '../../utils/errors'
 import { createPasteId } from '../../utils/id'
 import { normalizeSlug, validateCustomSlug } from '../../utils/slug'
 import { canCreateWithVisibility } from '../../utils/visibility'
+import { sanitizeContent } from '../../utils/sanitize'
 
 const schema = z.object({
   customSlug: z.string().trim().min(3).max(48).optional().or(z.literal('')),
@@ -21,7 +22,7 @@ export default defineEventHandler(async (event) => {
     badRequest('Invalid paste payload')
   }
 
-  const user = await getCurrentUser(event)
+  const user = await getSessionUser(event)
   const visibility = payload.data.visibility as Visibility
 
   if (!canCreateWithVisibility(visibility, user)) {
@@ -49,7 +50,7 @@ export default defineEventHandler(async (event) => {
     data: {
       id: nextId,
       title: '',
-      contentRawMarkdown: payload.data.contentRawMarkdown,
+      contentRawMarkdown: sanitizeContent(payload.data.contentRawMarkdown),
       visibility,
       expiresAt,
       ownerId: user?.id

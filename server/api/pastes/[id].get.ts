@@ -1,5 +1,5 @@
 import { getRouterParam } from 'h3'
-import { getCurrentUser } from '../../utils/auth'
+import { getSessionUser } from '../../utils/session'
 import { assertNotExpired } from '../../utils/expiry'
 import { notFound, unauthorized } from '../../utils/errors'
 import { prisma } from '../../utils/db'
@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
 
   assertNotExpired(paste.expiresAt)
 
-  const user = await getCurrentUser(event)
+  const user = await getSessionUser(event)
   const rule = resolveVisibility(paste, user)
 
   if (!rule.canRead) {

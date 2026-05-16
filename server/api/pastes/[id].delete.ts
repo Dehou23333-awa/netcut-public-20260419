@@ -1,30 +1,33 @@
 import { getRouterParam } from 'h3'
-import { getCurrentUser } from '../../utils/auth'
-import { assertNotExpired } from '../../utils/expiry'
-import { notFound, unauthorized } from '../../utils/errors'
+import { getSessionUser } from '../../utils/session'
 import { prisma } from '../../utils/db'
-import { resolveVisibility } from '../../utils/visibility'
+import { unauthorized } from '../../utils/errors'
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) {
-    notFound('Paste not found')
+    unauthorized('Cannot delete this paste')
   }
 
-  const paste = await prisma.paste.findUnique({ where: { id } })
-  if (!paste) {
-    notFound('Paste not found')
+  const user = await getSessionUser(event)
+  if (!user) {
+    unauthorized('Login required')
   }
 
-  assertNotExpired(paste.expiresAt)
+  const result = await prisma.paste.deleteMany({
+    where: {
+      id,
+      ownerId: user.id,
+      OR: [
+        { expiresAt: null },
+        { expiresAt: { gte: new Date() } }
+      ]
+    }
+  })
 
-  const user = await getCurrentUser(event)
-  const rule = resolveVisibility(paste, user)
-  if (!rule.isOwner) {
-    unauthorized('Only owner can delete')
+  if (result.count === 0) {
+    unauthorized('Cannot delete this paste')
   }
-
-  await prisma.paste.delete({ where: { id } })
 
   return { ok: true }
 })

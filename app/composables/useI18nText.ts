@@ -47,6 +47,7 @@ const messages: Record<Locale, Dict> = {
     'paste.contentPlaceholder': '正文内容...',
     'paste.loadFail': '加载失败',
     'paste.saveFail': '保存失败',
+    'paste.newPaste': '创建新粘贴',
 
     'login.title': '登录',
     'login.identifier': '用户名或邮箱',
@@ -115,6 +116,7 @@ const messages: Record<Locale, Dict> = {
     'paste.contentPlaceholder': 'Content...',
     'paste.loadFail': 'Load failed',
     'paste.saveFail': 'Save failed',
+    'paste.newPaste': 'Create new paste',
 
     'login.title': 'Login',
     'login.identifier': 'Username or email',

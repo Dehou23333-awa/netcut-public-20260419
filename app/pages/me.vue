@@ -8,6 +8,7 @@
     <section class="panel">
       <h1>{{ t('me.title') }}</h1>
       <p v-if="loading">{{ t('me.loading') }}</p>
+      <p v-else-if="loadError" class="error">{{ loadError }}</p>
       <p v-else-if="!items.length" class="muted">{{ t('me.empty') }}</p>
       <ul v-else class="list">
         <li v-for="item in items" :key="item.id" class="list-item">
@@ -41,12 +42,16 @@ type Item = {
 const { t } = useI18nText()
 const loading = ref(true)
 const items = ref<Item[]>([])
+const loadError = ref('')
 
 async function load() {
   loading.value = true
+  loadError.value = ''
   try {
     const data = await $fetch<{ pastes: Item[] }>('/api/pastes/mine')
     items.value = data.pastes
+  } catch {
+    loadError.value = 'Failed to load pastes'
   } finally {
     loading.value = false
   }
