@@ -4,7 +4,7 @@
       <div class="footnote-lang" aria-label="language switch">
         <button
           type="button"
-          class="ghost footnote-lang-btn"
+          class="footnote-lang-btn"
           :class="{ active: locale === 'zh' }"
           @click="setLocale('zh')"
         >
@@ -12,14 +12,14 @@
         </button>
         <button
           type="button"
-          class="ghost footnote-lang-btn"
+          class="footnote-lang-btn"
           :class="{ active: locale === 'en' }"
           @click="setLocale('en')"
         >
           {{ t('lang.en') }}
         </button>
       </div>
-      <p class="footnote-copy">@2026 NetCut</p>
+      <p class="footnote-copy">&copy; 2026 NetCut</p>
     </div>
   </footer>
 </template>

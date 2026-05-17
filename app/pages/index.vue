@@ -1,7 +1,7 @@
 <template>
   <main class="shell shell-minimal">
     <header class="topbar topbar-minimal">
-      <NuxtLink to="/">NetCut</NuxtLink>
+      <NuxtLink to="/" class="logo">NetCut</NuxtLink>
       <div class="topbar-actions">
         <button type="button" class="btn-publish" :disabled="submitting" @click="openConfirm">
           {{ submitting ? t('index.submitting') : t('index.submit') }}
@@ -10,23 +10,30 @@
       </div>
     </header>
 
-    <div class="hero hero-wysiwyg">
+    <section class="hero hero-wysiwyg">
       <MinimalMarkdownInput v-model="contentRawMarkdown" :placeholder="t('paste.contentPlaceholder')" />
-
       <p v-if="error" class="error">{{ error }}</p>
-    </div>
+    </section>
 
     <dialog ref="confirmDialog" class="confirm-dialog">
       <form method="dialog" class="confirm-body" @submit.prevent="createPaste">
         <h2>{{ t('index.confirmTitle') }}</h2>
-        <input v-model="customSlug" :placeholder="t('index.slugPlaceholder')" maxlength="48" />
-        <p class="muted">{{ t('index.slugHint') }}</p>
+        <p class="confirm-desc">{{ t('index.confirmDesc') }}</p>
+
+        <label class="field-label" for="paste-slug">{{ t('index.slugLabel') }}</label>
+        <input id="paste-slug" v-model="customSlug" :placeholder="t('index.slugPlaceholder')" maxlength="48" />
+        <p class="field-hint">{{ t('index.slugHint') }}</p>
+
+        <label class="field-label">{{ t('index.visibilityLabel') }}</label>
         <GlassSelect v-model="visibility" :options="visibilityOptions" :disabled="!isLoggedIn" />
-        <p v-if="!isLoggedIn" class="muted">{{ t('index.anonVisibilityHint') }}</p>
+        <p v-if="!isLoggedIn" class="field-hint">{{ t('index.anonVisibilityHint') }}</p>
+
+        <label class="field-label">{{ t('index.expiryLabel') }}</label>
         <GlassSelect v-model="expireInHours" :options="expireOptions" />
-        <div class="row controls-tight">
+
+        <div class="confirm-actions">
           <button type="button" class="ghost" @click="closeConfirm">{{ t('index.cancel') }}</button>
-          <button type="submit" :disabled="submitting">
+          <button type="submit" :disabled="submitting" class="btn-primary">
             {{ submitting ? t('index.submitting') : t('index.confirmSubmit') }}
           </button>
         </div>
@@ -133,3 +140,62 @@ async function createPaste() {
   }
 }
 </script>
+
+<style scoped>
+.logo {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.editor-label {
+  margin: 0 0 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.confirm-desc {
+  margin: -8px 0 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.field-hint {
+  margin: -4px 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+</style>

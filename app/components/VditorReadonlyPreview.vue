@@ -57,4 +57,12 @@ watch(
   background: transparent;
   color: var(--ink);
 }
+
+/* Remove default list indentation so preview content aligns with page grid */
+:deep(.vditor-reset ul),
+:deep(.vditor-reset ol) {
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style-position: inside !important;
+}
 </style>

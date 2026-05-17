@@ -1,7 +1,7 @@
 <template>
   <main class="shell shell-minimal">
     <header class="topbar topbar-minimal">
-      <NuxtLink to="/">NetCut</NuxtLink>
+      <NuxtLink to="/" class="logo">NetCut</NuxtLink>
       <div class="topbar-actions">
         <button v-if="canEdit" type="button" class="btn-publish" :disabled="saving" @click="save">
           {{ saving ? t('paste.saving') : t('paste.save') }}
@@ -11,7 +11,6 @@
     </header>
 
     <div class="hero hero-wysiwyg">
-      <p v-if="isNewPaste" class="new-paste-badge">{{ t('paste.newPaste') }}</p>
       <div class="content-area">
         <MinimalMarkdownInput v-if="canEdit" v-model="contentRawMarkdown" :placeholder="t('paste.contentPlaceholder')" />
         <VditorReadonlyPreview v-else :markdown="contentRawMarkdown" class="preview-wysiwyg" />
@@ -90,6 +89,7 @@ async function load() {
     visibility.value = data.paste.visibility
     canEdit.value = data.permissions.canEdit
   } catch (e: any) {
+    // If paste doesn't exist (404), allow user to create new one with this custom slug
     if (e?.status === 404) {
       isNewPaste.value = true
       canEdit.value = true
@@ -112,32 +112,23 @@ async function save() {
     }
 
     if (isNewPaste.value) {
-      try {
-        const data = await $fetch<{ paste: { id: string } }>('/api/pastes', {
-          method: 'POST',
-          body: {
-            customSlug: String(route.params.id),
-            contentRawMarkdown: contentRawMarkdown.value,
-            visibility: visibility.value,
-            expireInHours:
-              expireInHours.value === ''
-                ? undefined
-                : expireInHours.value === 0
-                  ? null
-                  : Number(expireInHours.value)
-          }
-        })
-        isNewPaste.value = false
-        error.value = ''
-        await navigateTo(`/p/${data.paste.id}`)
-      } catch (createError: any) {
-        if (createError?.status === 400) {
-          isNewPaste.value = false
-          await load()
-          return
+      // Create new paste with custom slug
+      await $fetch('/api/pastes', {
+        method: 'POST',
+        body: {
+          customSlug: String(route.params.id),
+          contentRawMarkdown: contentRawMarkdown.value,
+          visibility: visibility.value,
+          expireInHours:
+            expireInHours.value === ''
+              ? undefined
+              : expireInHours.value === 0
+                ? null
+                : Number(expireInHours.value)
         }
-        throw createError
-      }
+      })
+      isNewPaste.value = false
+      await load()
     } else {
       // Update existing paste
       await $fetch(`/api/pastes/${route.params.id}`, {

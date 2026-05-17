@@ -151,4 +151,17 @@ watch(
   font-weight: 700;
   margin: 0.2em 0;
 }
+
+/* Remove default list indentation so editor content aligns with page grid */
+:deep(.vditor-reset),
+:deep(.vditor-reset ul),
+:deep(.vditor-reset ol) {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+:deep(.vditor-reset ul),
+:deep(.vditor-reset ol) {
+  list-style-position: inside !important;
+}
 </style>

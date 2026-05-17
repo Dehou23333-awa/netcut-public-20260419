@@ -2,6 +2,7 @@ type AuthUser = {
   id: string
   username: string
   email: string | null
+  isAdmin: boolean
 }
 
 type AuthResponse = {
@@ -27,7 +28,11 @@ export function useAuthState() {
   }
 
   const logout = async () => {
-    await $fetch('/api/auth/logout', { method: 'POST' })
+    try {
+      await $fetch('/api/auth/logout', { method: 'POST' })
+    } catch {
+      // Server error — still clear local state
+    }
     auth.value = { loggedIn: false, user: null }
     await navigateTo('/')
   }
